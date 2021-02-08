@@ -1,9 +1,9 @@
-import React, { DetailedHTMLProps } from "react";
+import React, { DetailedHTMLProps, MouseEvent } from "react";
 import styled, { ThemedStyledProps } from "styled-components";
 import { ThemeDict } from "../../common";
 import { Theme } from "../../type";
 
-const Overlay = styled.div<{ open?: Boolean }>`
+const Overlay = styled.div<{ open?: Boolean; theme: Theme }>`
   position: fixed;
   top: 0;
   bottom: 0;
@@ -12,7 +12,7 @@ const Overlay = styled.div<{ open?: Boolean }>`
   opacity: ${(props) => (props.open ? 1 : 0)};
   visibility: ${(props) => (props.open ? "visible" : "hidden")};
   transition: opacity 500ms;
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: ${(props) => props.theme.backdropColor};
   display: flex;
   justify-content: center;
   align-items: center;
@@ -20,9 +20,8 @@ const Overlay = styled.div<{ open?: Boolean }>`
 const Content = styled.div<{ theme: Theme }>`
   background-color: ${(props) => props.theme.backgroundColor};
   color: ${(props) => props.theme.color};
-  padding: 1rem;
+  padding: 0.5rem;
   border-radius: 5px;
-  width: 30%;
   position: relative;
   margin: 0 auto;
   transition: all 5s ease-in-out;
@@ -33,11 +32,17 @@ const ButtonGroup = styled.div`
   align-items: center;
   grid-gap: 0.5rem;
 `;
-const Button = styled.button`
+const Button = styled.button<{ theme: Theme }>`
   padding: 0.5rem 0.75rem;
   border: none;
+  background-color: inherit;
+  color: ${(props) => props.theme.buttonTextColor};
   border-radius: 5px;
   outline: none;
+  font-weight: 600;
+  &:hover {
+    color: ${(props) => props.theme.hoverColor};
+  }
 `;
 const CloseButton = styled.button`
   position: absolute;
@@ -45,11 +50,13 @@ const CloseButton = styled.button`
   right: 0.5rem;
   outline: none;
   border: none;
-  background-color: #fff;
+  background-color: inherit;
 `;
-const CloseIcon = styled.div`
+const CloseIcon = styled.div<{ theme: Theme }>`
   width: 20px;
   height: 20px;
+  color: ${(props) => props.theme.color};
+  opacity: 0.5;
   &:before,
   :after {
     position: absolute;
@@ -57,7 +64,7 @@ const CloseIcon = styled.div`
     content: " ";
     height: 18px;
     width: 2px;
-    background-color: #cecece;
+    background-color: ${(props) => props.theme.color};
   }
   &:before {
     transform: rotate(45deg);
@@ -65,31 +72,41 @@ const CloseIcon = styled.div`
   &:after {
     transform: rotate(-45deg);
   }
+  &:hover {
+    opacity: 1;
+  }
 `;
 function Popup(props: {
   children: React.ReactChild;
   open: Boolean;
-  theme?: string;
+  theme?: "light" | "dark";
+  showCloseIcon?: Boolean;
+  onOK?: Function;
+  onCancel?: Function;
+  onClose?: Function;
 }) {
+  const theme = ThemeDict[props.theme || "dark"];
   return (
     <div>
-      <Overlay open={props.open}>
-        <Content theme={ThemeDict[props.theme || "light"]}>
-          <CloseButton>
-            <CloseIcon></CloseIcon>
-          </CloseButton>
-          <div
-            style={{
-              maxHeight: "90vh",
-              overflow: "auto",
-              margin: "0.75rem 0 0.5rem 0",
-            }}
-          >
-            {props.children}
-          </div>
+      <Overlay open={props.open} theme={theme}>
+        <Content theme={theme}>
+          {props.showCloseIcon && (
+            <CloseButton theme={theme} onClick={props.onClose as any}>
+              <CloseIcon theme={theme}></CloseIcon>
+            </CloseButton>
+          )}
+          <div>{props.children}</div>
           <ButtonGroup>
-            <Button>OK</Button>
-            <Button>Cancel</Button>
+            {props.onOK && (
+              <Button theme={theme} onClick={props.onOK as any}>
+                OK
+              </Button>
+            )}
+            {props.onCancel && (
+              <Button theme={theme} onClick={props.onCancel as any}>
+                CANCEL
+              </Button>
+            )}
           </ButtonGroup>
         </Content>
       </Overlay>
