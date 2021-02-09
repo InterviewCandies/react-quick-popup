@@ -1,7 +1,7 @@
 import React, { DetailedHTMLProps, MouseEvent } from "react";
 import styled, { ThemedStyledProps } from "styled-components";
 import { ThemeDict } from "../../common";
-import { Theme } from "../../type";
+import { PopupProps, PopupSettings, Theme } from "../../type";
 
 const Overlay = styled.div<{ open?: Boolean; theme: Theme }>`
   position: fixed;
@@ -9,13 +9,12 @@ const Overlay = styled.div<{ open?: Boolean; theme: Theme }>`
   bottom: 0;
   left: 0;
   right: 0;
-  opacity: ${(props) => (props.open ? 1 : 0)};
-  visibility: ${(props) => (props.open ? "visible" : "hidden")};
-  transition: opacity 500ms;
+  display: ${(props) => (props.open ? "flex" : "none")};
   background-color: ${(props) => props.theme.backdropColor};
-  display: flex;
   justify-content: center;
+  z-index: 1;
   align-items: center;
+  transition: opacity 0.25s;
 `;
 const Content = styled.div<{ theme: Theme }>`
   background-color: ${(props) => props.theme.backgroundColor};
@@ -24,7 +23,8 @@ const Content = styled.div<{ theme: Theme }>`
   border-radius: 5px;
   position: relative;
   margin: 0 auto;
-  transition: all 5s ease-in-out;
+  box-shadow: 0px 11px 15px -7px rgb(0 0 0 / 20%),
+    0px 24px 38px 3px rgb(0 0 0 / 14%), 0px 9px 46px 8px rgb(0 0 0 / 12%);
 `;
 const ButtonGroup = styled.div`
   display: flex;
@@ -76,20 +76,30 @@ const CloseIcon = styled.div<{ theme: Theme }>`
     opacity: 1;
   }
 `;
-function Popup(props: {
-  children: React.ReactChild;
-  open: Boolean;
-  theme?: "light" | "dark";
-  showCloseIcon?: Boolean;
-  onOK?: Function;
-  onCancel?: Function;
-  onClose?: Function;
-}) {
-  const theme = ThemeDict[props.theme || "dark"];
+function Popup(props: PopupProps) {
+  const theme = ThemeDict[props.theme || "light"];
   return (
     <div>
-      <Overlay open={props.open} theme={theme}>
-        <Content theme={theme}>
+      <Overlay
+        id="overlay"
+        open={props.open}
+        theme={theme}
+        style={
+          props.settings && props.settings["backdropColor"]
+            ? { backgroundColor: props.settings["backdropColor"] }
+            : {}
+        }
+        onClick={(e) => {
+          if (props.disableBackdropClick) return;
+          // @ts-ignore
+          if (e.target.id === "overlay") props.onClose();
+          else return;
+        }}
+      >
+        <Content
+          theme={theme}
+          style={props.settings && props.settings["paper"]}
+        >
           {props.showCloseIcon && (
             <CloseButton theme={theme} onClick={props.onClose as any}>
               <CloseIcon theme={theme}></CloseIcon>
@@ -98,12 +108,20 @@ function Popup(props: {
           <div>{props.children}</div>
           <ButtonGroup>
             {props.onOK && (
-              <Button theme={theme} onClick={props.onOK as any}>
+              <Button
+                theme={theme}
+                onClick={props.onOK as any}
+                style={props.settings && props.settings["okButton"]}
+              >
                 OK
               </Button>
             )}
             {props.onCancel && (
-              <Button theme={theme} onClick={props.onCancel as any}>
+              <Button
+                theme={theme}
+                onClick={props.onCancel as any}
+                style={props.settings && props.settings["cancelButton"]}
+              >
                 CANCEL
               </Button>
             )}
