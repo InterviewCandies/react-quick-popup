@@ -18,13 +18,18 @@ export interface PopupSettings {
 }
 
 export interface PopupProps {
-  children: React.ReactChild;
-  open: Boolean;
+  content: JSX.Element;
+  open?: Boolean;
   theme?: "light" | "dark";
   showCloseIcon?: Object;
   disableBackdropClick?: Boolean;
-  onClose: Function;
+  onClose?: Function;
   onOK?: Function;
   onCancel?: Function;
   settings?: PopupSettings;
 }
+
+export type PopupContextType = readonly [
+  (options: PopupProps) => void,
+  () => void
+];

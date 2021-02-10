@@ -101,11 +101,18 @@ function Popup(props: PopupProps) {
           style={props.settings && props.settings["paper"]}
         >
           {props.showCloseIcon && (
-            <CloseButton theme={theme} onClick={props.onClose as any}>
+            <CloseButton
+              theme={theme}
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("remove");
+                props.onClose && props.onClose();
+              }}
+            >
               <CloseIcon theme={theme}></CloseIcon>
             </CloseButton>
           )}
-          <div>{props.children}</div>
+          <div>{props.content}</div>
           <ButtonGroup>
             {props.onOK && (
               <Button
